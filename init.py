@@ -4,8 +4,9 @@ if __name__ == '__main__':
     conn = sqlite3.connect('sales.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS currency_stats (
-        symbol TEXT PRIMARY KEY,
+        symbol TEXT,
         date INTEGER,
-        value REAL
+        value REAL,
+        PRIMARY KEY (symbol, date)
     )''')
     c.close()

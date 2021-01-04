@@ -128,24 +128,4 @@ def get_avg(values):
 if __name__ == '__main__':
     b = get_currency('USD', '2020-10-9', '2020-10-17')
     print(b)
-#
-# class mclass:
-#     def __init__(self, window):
-#         self.window = window
-#         self.box = Entry(window)
-#         self.button = Button(window, text="check", command=self.plot)
-#         self.box.pack()
-#         self.button.pack()
-#         self.fig = create_subplot()
-#
-#     def plot(self):
-#         create_currency_chart(['USD', 'EUR'], 300, self.fig)
-#         canvas = FigureCanvasTkAgg(self.fig, master=self.window)
-#         canvas.get_tk_widget().pack()
-#         canvas.draw()
-#
-#
-# if __name__ == '__main__':
-#     window = Tk()
-#     start = mclass(window)
-#     window.mainloop()
+

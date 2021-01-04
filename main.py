@@ -28,6 +28,8 @@ def make_request(currency, start_date, end_date):
 
 
 def get_range(currency, start_date, end_date):
+    if start_date.weekday() >= 5:
+        start_date -= timedelta(days=(start_date.weekday() % 4))
     dates = split_date(start_date, end_date)
     x = []
     for date_range in dates:
@@ -35,7 +37,7 @@ def get_range(currency, start_date, end_date):
         if isinstance(response, int) or response is None:
             print(f'Failed fetching data between {date_range[0]} and {date_range[1]}')
         else:
-            x = fix_response(response)
+            x = x + fix_response(response)
 
     return x
 
@@ -43,8 +45,6 @@ def get_range(currency, start_date, end_date):
 def get_previous_days(currency, days):
     current_date = datetime.now()
     beginning = current_date - timedelta(days=days)
-    if beginning.weekday() >= 5:
-        beginning -= timedelta(days=(beginning.weekday() % 4))
     return get_range(currency, beginning, current_date)
 
 
@@ -66,26 +66,6 @@ def to_date(date):
         return datetime.strptime(date, '%Y-%m-%d')
 
 
-def fill_currency(currencies, start_date, end_date):
-    for currency in currencies:
-        currency_values = get_range(currency, start_date, end_date)
-        conn = sqlite3.connect('sales.db')
-        c = conn.cursor()
-        print("Opened database successfully")
-        duplicates = 0
-        for daily_value in currency_values:
-            try:
-                safe_data = (currency.upper(), daily_value[0].date(), daily_value[1],)
-                c.execute('INSERT INTO sales_currency(symbol,date,value) VALUES(?,?,?)', safe_data)
-            except sqlite3.IntegrityError:
-                duplicates += 1
-
-        if duplicates != 0:
-            print(f'{duplicates} values were not added to database due to Integrity Error')
-        conn.commit()
-        conn.close()
-
-
 def split_date(start_date, end_date):
     days_between = (to_date(end_date) - to_date(start_date)).days
     print(days_between)
@@ -101,20 +81,53 @@ def split_date(start_date, end_date):
     return dates
 
 
-def get_currency(start_date, end_date):
+def fill_currency(currency, start_date, end_date):
+    conn = sqlite3.connect('sales.db')
+    c = conn.cursor()
+    print("Opened database successfully")
+    currency_values = get_range(currency, start_date, end_date)
+    duplicates = 0
+    for daily_value in currency_values:
+        safe_data = (currency.upper(), daily_value[0].timestamp(), daily_value[1])
+        try:
+            c.execute('INSERT INTO currency_stats(symbol,date,value) VALUES(?,?,?)', safe_data)
+        except sqlite3.IntegrityError:
+            c.execute('''UPDATE currency_stats
+             SET value = ? where symbol like ? and date like ?''', (safe_data[2], safe_data[0], safe_data[1]))
+            duplicates += 1
+    if duplicates != 0:
+        print(f'{duplicates} values were not added to database due to Integrity Error')
+    conn.commit()
+    conn.close()
+
+
+def get_currency(currency, start_date, end_date):
     if (to_date(end_date) - to_date(start_date)).days < 0:
         print('Illegal argument')
     conn = sqlite3.connect('sales.db')
     c = conn.cursor()
     print("Opened database successfully")
-    x = {}
+    x = []
 
-    safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(),)
-    for row in c.execute('SELECT value, date from currency where date between ? and ? ORDER BY date', safe_date):
-        x[datetime.fromtimestamp(int(row[1])).date()] = float(row[0])
+    safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
+    for row in c.execute('SELECT value, date from currency_stats'
+                         ' where date between ? and ? and symbol like ? ORDER BY date', safe_date):
+        x.append((datetime.fromtimestamp(int(row[1])).date(), float(row[0])))
     conn.close()
     return x
-#
+
+
+def get_difference(first_value, second_value):
+    return ((first_value - second_value)/first_value) * 100
+
+
+def get_avg(values):
+    return sum(values)/len(values)
+
+
+if __name__ == '__main__':
+    b = get_currency('USD', '2020-10-9', '2020-10-17')
+    print(b)
 #
 # class mclass:
 #     def __init__(self, window):
@@ -126,7 +139,7 @@ def get_currency(start_date, end_date):
 #         self.fig = create_subplot()
 #
 #     def plot(self):
-#         create_currency_chart(['USD', 'EUR'], 100, self.fig)
+#         create_currency_chart(['USD', 'EUR'], 300, self.fig)
 #         canvas = FigureCanvasTkAgg(self.fig, master=self.window)
 #         canvas.get_tk_widget().pack()
 #         canvas.draw()

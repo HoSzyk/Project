@@ -2,13 +2,13 @@ import requests
 import sqlite3
 import constants as const
 from datetime import datetime, timedelta
-import matplotlib
-from draw_figure import *
-
-from tkinter import *
-
-matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+# import matplotlib
+# from draw_figure import *
+#
+# from tkinter import *
+#
+# matplotlib.use('TkAgg')
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 def make_request(currency, start_date, end_date):
@@ -114,25 +114,25 @@ def get_currency(start_date, end_date):
         x[datetime.fromtimestamp(int(row[1])).date()] = float(row[0])
     conn.close()
     return x
-
-
-class mclass:
-    def __init__(self, window):
-        self.window = window
-        self.box = Entry(window)
-        self.button = Button(window, text="check", command=self.plot)
-        self.box.pack()
-        self.button.pack()
-        self.fig = create_subplot()
-
-    def plot(self):
-        create_currency_chart(['USD', 'EUR'], 100, self.fig)
-        canvas = FigureCanvasTkAgg(self.fig, master=self.window)
-        canvas.get_tk_widget().pack()
-        canvas.draw()
-
-
-if __name__ == '__main__':
-    window = Tk()
-    start = mclass(window)
-    window.mainloop()
+#
+#
+# class mclass:
+#     def __init__(self, window):
+#         self.window = window
+#         self.box = Entry(window)
+#         self.button = Button(window, text="check", command=self.plot)
+#         self.box.pack()
+#         self.button.pack()
+#         self.fig = create_subplot()
+#
+#     def plot(self):
+#         create_currency_chart(['USD', 'EUR'], 100, self.fig)
+#         canvas = FigureCanvasTkAgg(self.fig, master=self.window)
+#         canvas.get_tk_widget().pack()
+#         canvas.draw()
+#
+#
+# if __name__ == '__main__':
+#     window = Tk()
+#     start = mclass(window)
+#     window.mainloop()

@@ -101,7 +101,6 @@ def get_currency(currency, start_date, end_date):
     c = conn.cursor()
     print("Opened database successfully")
     x = []
-
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
     for row in c.execute('SELECT value, date from currency_stats'
                          ' where date between ? and ? and symbol like ? ORDER BY date', safe_date):

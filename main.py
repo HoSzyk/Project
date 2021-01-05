@@ -2,13 +2,6 @@ import requests
 import sqlite3
 import constants as const
 from datetime import datetime, timedelta
-# import matplotlib
-# from draw_figure import *
-#
-# from tkinter import *
-#
-# matplotlib.use('TkAgg')
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 def make_request(currency, start_date, end_date):
@@ -123,9 +116,3 @@ def get_difference(first_value, second_value):
 
 def get_avg(values):
     return sum(values)/len(values)
-
-
-if __name__ == '__main__':
-    b = get_currency('USD', '2020-10-9', '2020-10-17')
-    print(b)
-

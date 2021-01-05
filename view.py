@@ -1,17 +1,32 @@
 from tkinter import *
+
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from draw_figure import create_subplot, create_currency_chart
 from data_manager import get_currency
 
 
 class CurrencyManager:
-    def __init__(self, window):
+    def __init__(self, window:Tk):
         self.window = window
+
+        # Window config
+        self.window.title('Menadżer walut')
+        self.window.iconphoto(False, PhotoImage(file="resource/icon.png"))
+
         self.box = Entry(window)
         self.button = Button(window, text="check", command=self.plot)
         self.box.pack()
         self.button.pack()
+
+        # Instantiate Menu
+        main_menu = Menu(self.window)
+        main_menu.add_command(label="Odśwież", command=None)
+        main_menu.add_command(label="Ustawienia", command=None)
+        self.window.config(menu=main_menu)
+
+        # Instantiate Plot
         self.fig = create_subplot()
+        self.plot()
 
     def plot(self):
         currency = 'USD'
@@ -25,6 +40,7 @@ class CurrencyManager:
 
 
 if __name__ == '__main__':
-    win = Tk()
-    start = CurrencyManager(win)
-    win.mainloop()
+    root = Tk()
+    start = CurrencyManager(root)
+    # root.protocol("WM_DELETE_WINDOW", on_closing)
+    root.mainloop()

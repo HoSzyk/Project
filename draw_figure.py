@@ -1,5 +1,4 @@
 from datetime import timedelta
-
 from matplotlib.figure import Figure
 
 

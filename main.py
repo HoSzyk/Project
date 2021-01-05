@@ -78,7 +78,7 @@ def fill_currency(currency, start_date, end_date):
     conn = sqlite3.connect('sales.db')
     c = conn.cursor()
     print("Opened database successfully")
-    currency_values = get_range(currency, start_date, end_date)
+    currency_values = get_range(currency, to_date(start_date), to_date(end_date))
     duplicates = 0
     for daily_value in currency_values:
         safe_data = (currency.upper(), daily_value[0].timestamp(), daily_value[1])

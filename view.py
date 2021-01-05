@@ -1,7 +1,7 @@
 from tkinter import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from draw_figure import create_subplot, create_currency_chart
-from main import get_currency, fill_currency
+from data_manager import get_currency
 
 
 class CurrencyManager:

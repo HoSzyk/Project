@@ -22,7 +22,7 @@ class CurrencyManager:
         self.window_right = Frame(self.window, borderwidth=2, relief=SOLID)
         self.window_right.pack(side=RIGHT, expand=True, fill="both", padx=5, pady=5)
         self.window_right_top = Frame(self.window_right)
-        self.window_right_bottom = Frame(self.window_right)
+        self.window_right_bottom = PyCurrencyBottomFrame(self.window_right)
         lb_information = Label(self.window_right, text='Informacje', padx=10, font=("Courier", 30, 'bold'))
         lb_currency = Label(self.window_right, text='Kalkulator walutowy', font=("Courier", 30, 'bold'), padx=10)
         lb_information.pack(side=TOP, pady=(10, 10))
@@ -66,23 +66,26 @@ class CurrencyManager:
         self.window_right_top.grid_columnconfigure((1,), weight=1)
 
         # Instantiate Right bottom side
-        self.ent_value = Entry(self.window_right_bottom, font=("Courier", 25, 'bold'), width=4)
-        self.button_convert = Button(self.window_right_bottom, text="Przelicz", command=self.plot)
-        self.button_reverse = Button(self.window_right_bottom,
-                                     image=PhotoImage(file="resource/reverse_icon.png"), command=self.plot)
-        self.date_entry = DateEntry(self.window_right_bottom, width=12, borderwidth=2, year=2010)
-        self.lb_currency_result = Label(self.window_right_bottom, font=("Courier", 30), padx=10)
-        self.lb_ent = Label(self.window_right_bottom, text='test', font=("Courier", 25, 'bold'), padx=10)
-        lb_date = Label(self.window_right_bottom, text='Data: ', font=("Courier", 25, 'bold'), padx=10)
-
-        self.ent_value.grid(row=0, column=1, padx=(10, 0), pady=15, sticky='WENS')
-        self.lb_ent.grid(row=0, column=2, pady=15, sticky='WE')
-        lb_date.grid(row=1, column=1, pady=15, sticky='WE')
-        self.date_entry.grid(row=1, column=2, pady=15, sticky='WENS')
-        self.button_convert.grid(row=2, column=1, pady=15)
-        self.button_reverse.grid(row=2, column=2, pady=15)
-        self.lb_currency_result.grid(row=3, pady=15)
-        self.window_right_bottom.grid_columnconfigure((0, 3), weight=1)
+        # self.ent_value = Entry(self.window_right_bottom, font=("Courier", 25, 'bold'), width=4)
+        # self.button_convert = Button(self.window_right_bottom, text="Przelicz",
+        #                              font=("Courier", 20, 'bold'), command=self.plot)
+        # self.button_reverse = Button(self.window_right_bottom, text='Zamień',
+        #                              font=("Courier", 20, 'bold'), command=self.plot)
+        # self.date_entry = DateEntry(self.window_right_bottom, width=12, borderwidth=2, year=2010)
+        # self.lb_currency_result = Label(self.window_right_bottom, font=("Courier", 30, 'bold'), padx=10)
+        # self.lb_ent = Label(self.window_right_bottom,
+        #                     text='zł',
+        #                     font=("Courier", 25, 'bold'))
+        # lb_date = Label(self.window_right_bottom, text='Data: ', font=("Courier", 25, 'bold'), padx=10)
+        #
+        # self.ent_value.grid(row=0, column=1, padx=(10, 0), pady=15, sticky='WENS')
+        # self.lb_ent.grid(row=0, column=2, pady=15, sticky='WE')
+        # lb_date.grid(row=1, column=1, pady=15, sticky='WE')
+        # self.date_entry.grid(row=1, column=2, pady=15, sticky='WENS')
+        # self.button_convert.grid(row=2, column=1, pady=15)
+        # self.button_reverse.grid(row=2, column=2, pady=15)
+        # self.lb_currency_result.grid(row=3, column=1, columnspan=2, pady=15, sticky='WE')
+        # self.window_right_bottom.grid_columnconfigure((0, 3), weight=1)
 
         # Get Config
         self.user_config = UserData.load_from_file()
@@ -119,6 +122,36 @@ class CurrencyManager:
         self.lb_average_value.config(text=f'{get_avg(self.data):10.3f}')
         self.lb_difference_one_day_value.config(text=f'{difference_day:10.3f} %')
         self.lb_difference_interval_value.config(text=f'{difference_interval:10.3f} %')
+
+
+class PyCurrencyBottomFrame(Frame):
+    def __init__(self, parent, *args, **kwargs):
+        Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        self.ent_value = Entry(self, font=("Courier", 25, 'bold'), width=4)
+        self.button_convert = Button(self, text="Przelicz",
+                                     font=("Courier", 20, 'bold'), command=None)
+        self.button_reverse = Button(self, text='Zamień',
+                                     font=("Courier", 20, 'bold'), command=None)
+        self.date_entry = DateEntry(self, width=12, borderwidth=2, year=2010)
+        self.lb_currency_result = Label(self, font=("Courier", 30, 'bold'), padx=10)
+        self.lb_ent = Label(self,
+                            text='zł',
+                            font=("Courier", 25, 'bold'))
+        lb_date = Label(self, text='Data: ', font=("Courier", 25, 'bold'), padx=10)
+
+        self.ent_value.grid(row=0, column=1, padx=(10, 0), pady=15, sticky='WENS')
+        self.lb_ent.grid(row=0, column=2, pady=15, sticky='WE')
+        lb_date.grid(row=1, column=1, pady=15, sticky='WE')
+        self.date_entry.grid(row=1, column=2, pady=15, sticky='WENS')
+        self.button_convert.grid(row=2, column=1, pady=15)
+        self.button_reverse.grid(row=2, column=2, pady=15)
+        self.lb_currency_result.grid(row=3, column=1, columnspan=2, pady=15, sticky='WE')
+        self.grid_columnconfigure((0, 3), weight=1)
+
+    def update_frame(self, user_config):
+        self.lb_ent.config(text=f'{"zł" if user_config.is_zl else user_config.currency_type}')
+        self.lb_currency_result.config(text=f'0 {"zł" if not user_config.is_zl else user_config.currency_type}')
 
 
 if __name__ == '__main__':

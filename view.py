@@ -1,9 +1,11 @@
 from tkinter import *
+from tkinter import ttk
+
 from tkcalendar import DateEntry
 from user_data_manager import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from draw_figure import create_subplot, create_currency_chart
-from data_manager import get_currency
+from data_manager import *
 
 
 class CurrencyManager:
@@ -13,12 +15,20 @@ class CurrencyManager:
         # Window config
         self.window.title('Menadżer walut')
         self.window.iconphoto(False, PhotoImage(file="resource/icon.png"))
+        self.window.geometry('1300x700')
+        self.window.minsize(1300, 700)
 
         # Window right side
-        self.window_right = Frame(self.window)
-        self.window_right.pack(side=RIGHT, expand=True, fill="both")
+        self.window_right = Frame(self.window, borderwidth=2, relief=SOLID)
+        self.window_right.pack(side=RIGHT, expand=True, fill="both", padx=5, pady=5)
+        self.window_right_top = Frame(self.window_right)
         self.window_right_bottom = Frame(self.window_right)
-        self.window_right_bottom.pack(side=BOTTOM, expand=True, fill="both")
+        lb_information = Label(self.window_right, text='Informacje', padx=10, font=("Courier", 30, 'bold'))
+        lb_currency = Label(self.window_right, text='Kalkulator walutowy', font=("Courier", 30, 'bold'), padx=10)
+        lb_information.pack(side=TOP, pady=(10, 10))
+        self.window_right_top.pack(side=TOP, fill=X)
+        lb_currency.pack(side=TOP)
+        self.window_right_bottom.pack(fill=X, pady=(10, 0))
 
         # Window left side
         self.window_left = Frame(self.window)
@@ -32,42 +42,89 @@ class CurrencyManager:
         main_menu.add_command(label="Ustawienia", command=None)
         self.window.config(menu=main_menu)
 
-        # Instantiate Plot
+        # Instantiate Left Plot
         self.fig = create_subplot()
-        self.plot()
 
-        # Instantiate Right side
-        self.lb_average = Label(self.window_right, text='test')
-        self.lb_difference_interval = Label(self.window_right, text='test')
-        self.lb_difference_one_day = Label(self.window_right, text='test')
-        self.lb_average.pack(padx=10, pady=10, expand=True, fill="both")
-        self.lb_difference_interval.pack(padx=10, pady=10, expand=True, fill="both")
-        self.lb_difference_one_day.pack(padx=10, pady=10, expand=True, fill="both")
+        # Instantiate Right top side
+        self.lb_average_text = Label(self.window_right_top, text='test', font=("Courier", 12), anchor=W)
+        self.lb_difference_interval_text = Label(self.window_right_top, text='test', font=("Courier", 12), anchor=W)
+        self.lb_difference_one_day_text = Label(self.window_right_top, text='test', font=("Courier", 12), anchor=W)
+
+        self.lb_average_value = Label(self.window_right_top, text='test', font=("Courier", 12, "bold"), anchor=E)
+        self.lb_difference_interval_value = Label(self.window_right_top, text='test',
+                                                  font=("Courier", 12, "bold"), anchor=E)
+        self.lb_difference_one_day_value = Label(self.window_right_top, text='test',
+                                                 font=("Courier", 12, "bold"), anchor=E)
+
+        # Adding to top right frame
+        self.lb_average_text.grid(row=0, column=0, padx=10, pady=15, sticky=W)
+        self.lb_difference_interval_text.grid(row=1, column=0, padx=10, sticky=W)
+        self.lb_difference_one_day_text.grid(row=2, column=0, padx=10, pady=15, sticky=W)
+        self.lb_average_value.grid(row=0, column=1, padx=10, pady=15, sticky=E)
+        self.lb_difference_interval_value.grid(row=1, column=1, padx=10, sticky=E)
+        self.lb_difference_one_day_value.grid(row=2, column=1, padx=10, pady=15, sticky=E)
+        self.window_right_top.grid_columnconfigure((1,), weight=1)
 
         # Instantiate Right bottom side
-        self.box = Entry(self.window_right_bottom)
-        self.button = Button(self.window_right_bottom, text="check", command=self.plot)
+        self.ent_value = Entry(self.window_right_bottom, font=("Courier", 25, 'bold'), width=4)
+        self.button_convert = Button(self.window_right_bottom, text="Przelicz", command=self.plot)
+        self.button_reverse = Button(self.window_right_bottom,
+                                     image=PhotoImage(file="resource/reverse_icon.png"), command=self.plot)
         self.date_entry = DateEntry(self.window_right_bottom, width=12, borderwidth=2, year=2010)
-        self.button.pack(side=RIGHT)
-        self.date_entry.pack(side=RIGHT)
-        self.box.pack(side=LEFT)
+        self.lb_currency_result = Label(self.window_right_bottom, font=("Courier", 30), padx=10)
+        self.lb_ent = Label(self.window_right_bottom, text='test', font=("Courier", 25, 'bold'), padx=10)
+        lb_date = Label(self.window_right_bottom, text='Data: ', font=("Courier", 25, 'bold'), padx=10)
+
+        self.ent_value.grid(row=0, column=1, padx=(10, 0), pady=15, sticky='WENS')
+        self.lb_ent.grid(row=0, column=2, pady=15, sticky='WE')
+        lb_date.grid(row=1, column=1, pady=15, sticky='WE')
+        self.date_entry.grid(row=1, column=2, pady=15, sticky='WENS')
+        self.button_convert.grid(row=2, column=1, pady=15)
+        self.button_reverse.grid(row=2, column=2, pady=15)
+        self.lb_currency_result.grid(row=3, pady=15)
+        self.window_right_bottom.grid_columnconfigure((0, 3), weight=1)
 
         # Get Config
-        user_config = UserData.load_from_file()
+        self.user_config = UserData.load_from_file()
+
+        # Get Data
+        self.data = []
+
+        # Update view with information
+        self.update()
 
     def plot(self):
-        currency = 'USD'
-        data = get_currency(currency, '2020-10-10', '2021-01-05')
-        create_currency_chart(currency, data, self.fig)
+        create_currency_chart(self.user_config.currency_type, self.data, self.fig)
         canvas = FigureCanvasTkAgg(self.fig, master=self.window_left)
         toolbar = NavigationToolbar2Tk(canvas, self.window_left_bottom)
         toolbar.update()
         canvas.get_tk_widget().pack(padx=(10, 0))
         canvas.draw()
 
+    def update(self):
+        self.data = get_currency(self.user_config.currency_type, self.user_config.get_start_date(), get_now_date())
+        self.plot()
+        self.update_labels()
+
+    def update_labels(self):
+        self.lb_average_text.config(text=f'Średnia z {self.user_config.numb_days} dni wynosi: ')
+        difference_day = get_difference(self.data[0][1], self.data[len(self.data) - 1][1])
+        difference_interval = get_difference(self.data[len(self.data) - 2][1], self.data[len(self.data) - 1][1])
+        self.lb_difference_one_day_text.config(text=f'Wartość w ciągu jednego dnia '
+                                                    f'{"zmniejszyła" if difference_day < 0 else "zwiekszyła"}'
+                                                    f' się o ')
+        self.lb_difference_interval_text.config(text=f'Wartość w ciągu {self.user_config.numb_days} '
+                                                     f'{"zmniejszyła" if difference_interval < 0 else "zwiekszyła"}'
+                                                     f' się o ')
+        self.lb_average_value.config(text=f'{get_avg(self.data):10.3f}')
+        self.lb_difference_one_day_value.config(text=f'{difference_day:10.3f} %')
+        self.lb_difference_interval_value.config(text=f'{difference_interval:10.3f} %')
+
 
 if __name__ == '__main__':
     root = Tk()
+    style = ttk.Style()
+    style.theme_use('clam')
     start = CurrencyManager(root)
     # root.protocol("WM_DELETE_WINDOW", func)
     root.mainloop()

@@ -114,4 +114,4 @@ def get_difference(first_value, second_value):
 
 
 def get_avg(values):
-    return sum(values)/len(values)
+    return sum([pair[1] for pair in values])/len(values)

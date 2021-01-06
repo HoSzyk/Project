@@ -1,11 +1,20 @@
 import json
+from datetime import timedelta
+
 from constants import *
+
+
+def get_now_date():
+    return datetime.now()
 
 
 class UserData:
     def __init__(self):
         self.currency_type = ''
         self.numb_days = 0
+
+    def get_start_date(self):
+        return datetime.now() - timedelta(days=self.numb_days)
 
     @classmethod
     def load_from_file(cls, file_path=CONFIG_FILE_PATH):

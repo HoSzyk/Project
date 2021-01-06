@@ -7,6 +7,7 @@ def create_currency_chart(currency, data, fig):
     if not data:
         print('No data')
     else:
+        sub_plot.clear()
         sub_plot.plot(*zip(*data), label=currency)
         max_x, max_y = max(data, key=lambda x: x[1])
         min_x, min_y = min(data, key=lambda x: x[1])

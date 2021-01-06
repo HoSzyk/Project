@@ -8,8 +8,9 @@ from draw_figure import create_subplot, create_currency_chart
 from data_manager import *
 
 
-class CurrencyManager:
-    def __init__(self, window: Tk):
+class CurrencyManager(Frame):
+    def __init__(self, window, *args, **kwargs):
+        Frame.__init__(self, window, *args, **kwargs)
         self.window = window
 
         # Window config
@@ -17,6 +18,7 @@ class CurrencyManager:
         self.window.iconphoto(False, PhotoImage(file="resource/icon.png"))
         self.window.geometry('1300x700')
         self.window.minsize(1300, 700)
+        self.window.protocol("WM_DELETE_WINDOW", self.on_close)
 
         # Window right side
         self.window_right = Frame(self.window, borderwidth=2, relief=SOLID)
@@ -38,12 +40,15 @@ class CurrencyManager:
 
         # Instantiate Menu
         main_menu = Menu(self.window)
-        main_menu.add_command(label="Odśwież bazę danych", command=None)
-        main_menu.add_command(label="Ustawienia", command=None)
+        main_menu.add_command(label="Odśwież bazę danych", command=self.update_db)
+        main_menu.add_command(label="Ustawienia", command=self.call_options)
         self.window.config(menu=main_menu)
 
         # Instantiate Left Plot
         self.fig = create_subplot()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.window_left)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.window_left_bottom)
+        self.canvas.get_tk_widget().pack(padx=(10, 0))
 
         # Get Config
         self.user_config = UserData.load_from_file()
@@ -54,17 +59,26 @@ class CurrencyManager:
         # Update view with information
         self.update()
 
-    def plot(self):
+    def update_plot(self):
         create_currency_chart(self.user_config.currency_type, self.data, self.fig)
-        canvas = FigureCanvasTkAgg(self.fig, master=self.window_left)
-        toolbar = NavigationToolbar2Tk(canvas, self.window_left_bottom)
-        toolbar.update()
-        canvas.get_tk_widget().pack(padx=(10, 0))
-        canvas.draw()
+        self.toolbar.update()
+        self.canvas.draw()
+
+    def update_db(self):
+        fill_currency(self.user_config.currency_type, self.user_config.get_start_date(), get_now_date())
+        self.update()
+
+    def on_close(self):
+        self.user_config.save_to_file()
+        self.window.destroy()
+
+    def call_options(self):
+        options_popup = Options(self)
+        options_popup.wait_window()
 
     def update(self):
         self.data = get_currency(self.user_config.currency_type, self.user_config.get_start_date(), get_now_date())
-        self.plot()
+        self.update_plot()
         self.window_right_top.update_frame(self.user_config, self.data)
         self.window_right_bottom.update_frame(self.user_config)
 
@@ -103,6 +117,7 @@ class PyCurrencyTopFrame(Frame):
     def __init__(self, parent, *args, **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+
         # Instantiate Right top side
         self.lb_average_text = Label(self, text='test', font=("Courier", 12), anchor=W)
         self.lb_difference_interval_text = Label(self, text='test', font=("Courier", 12), anchor=W)
@@ -136,10 +151,30 @@ class PyCurrencyTopFrame(Frame):
         self.lb_difference_interval_value.config(text=f'{difference_interval:10.3f} %')
 
 
+class Options(Toplevel):
+    def __init__(self, parent: CurrencyManager):
+        Toplevel.__init__(self, parent)
+        self.parent = parent
+
+        # add an entry widget
+        self.e1 = Entry(self)
+        self.e1.pack()
+
+        # add a button
+        b1 = Button(self, text="Popup button", command=self.button_pressed)
+        b1.pack()
+
+    def button_pressed(self):
+        # self.parent.user_config = self.e1.get()
+        self.exit_popup()
+
+    def exit_popup(self):
+        self.destroy()
+
+
 if __name__ == '__main__':
     root = Tk()
     style = ttk.Style()
     style.theme_use('clam')
     start = CurrencyManager(root)
-    # root.protocol("WM_DELETE_WINDOW", func)
     root.mainloop()

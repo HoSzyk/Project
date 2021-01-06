@@ -13,7 +13,7 @@ def create_currency_chart(currency, data, fig):
         sub_plot.annotate('Maksimum', xy=(max_x, max_y), xytext=(max_x, max_y + 0.03),
                           arrowprops=dict(arrowstyle='->'), clip_on=True,
                           )
-        sub_plot.tick_params(axis='x', rotation=45)
+        sub_plot.tick_params(axis='x', rotation=30)
         sub_plot.set_ylim([min_y - 0.01 * min_y, max_y + 0.02 * max_y])
         sub_plot.set_xlim([data[0][0], data[len(data) - 1][0] + timedelta(days=2)])
     sub_plot.legend()

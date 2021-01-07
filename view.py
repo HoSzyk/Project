@@ -193,6 +193,8 @@ class Options(Toplevel):
     def __init__(self, parent: CurrencyManager):
         Toplevel.__init__(self, parent)
         self.parent = parent
+        self.title('Ustawienia')
+        self.iconphoto(False, PhotoImage(file="resource/settings_icon.png"))
 
         # Make variables
         currency_types = [e.value for e in const.Currency]
@@ -226,10 +228,13 @@ class Options(Toplevel):
         self.destroy()
 
 
-if __name__ == '__main__':
+def start():
     root = Tk()
     style = ttk.Style()
     style.theme_use('clam')
-    start = CurrencyManager(root)
-    print(const.Currency.value2member_map_)
+    app = CurrencyManager(root)
     root.mainloop()
+
+
+if __name__ == '__main__':
+    start()

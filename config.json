@@ -1,5 +1,5 @@
 {
-    "currency_type": "USD",
-    "numb_days": 15,
-    "is_zl": false
+    "currency_type": "CHF",
+    "numb_days": 100,
+    "is_zl": true
 }

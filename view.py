@@ -78,7 +78,7 @@ class CurrencyManager(Frame):
         options_popup.grab_set()
         options_popup.wait_window()
         options_popup.grab_release()
-        self.update()
+        self.update_db()
 
     def update(self):
         self.data = get_currency(self.user_config.currency_type, self.user_config.get_start_date(), get_now_date())
@@ -93,13 +93,13 @@ class PyCurrencyBottomFrame(Frame):
         self.parent = parent
 
         # Make variables
-        self.var_ent = IntVar(self)
-        self.var_ent.set(0)
+        self.var_ent = StringVar(self)
+        self.var_ent.set('0')
 
         # Instantiate widgets
         ent_value = Entry(self, textvariable=self.var_ent, font=("Courier", 25, 'bold'), width=4, justify='right')
         self.button_convert = Button(self, text="Przelicz",
-                                     font=("Courier", 20, 'bold'), command=None)
+                                     font=("Courier", 20, 'bold'), command=self.convert_currency)
         self.button_reverse = Button(self, text='Zamień',
                                      font=("Courier", 20, 'bold'), command=self.reverse_currency_type)
         self.date_entry = DateEntry(self, width=12, borderwidth=2, justify='center', date_pattern='dd-mm-yyyy',
@@ -135,15 +135,20 @@ class PyCurrencyBottomFrame(Frame):
         self.user_config.is_zl = not self.user_config.is_zl
         self.lb_ent.config(text=f'{"PLN" if self.user_config.is_zl else self.user_config.currency_type}')
         currency_result = self.lb_currency_result.cget('text')[:-4]
-        self.var_ent.set(int(currency_result))
+        self.var_ent.set(currency_result)
         self.lb_currency_result.config(
             text=f'{f"{entry_val} PLN" if not self.user_config.is_zl else f"{entry_val} {self.user_config.currency_type}"}')
 
     def convert_currency(self):
-        currency = 'PLN' if self.user_config.is_zl else self.user_config.currency_type
-        entry = self.var_ent.get()
-        date = self.date_entry.get()
-        # result = entry *
+        currency = 'PLN' if not self.user_config.is_zl else self.user_config.currency_type
+        entry = float(self.var_ent.get())
+        conv_ent = self.date_entry.get_date()
+        conv_date = datetime.combine(conv_ent, time.min)
+        currency_record = get_currency(self.user_config.currency_type, conv_date, conv_date)
+        if currency_record:
+            currency_value = currency_record[0][1]
+            result = entry/currency_value if currency != 'PLN' else entry * currency_value
+            self.lb_currency_result.config(text=f'{result:5.3f} {currency}')
 
 
 class PyCurrencyTopFrame(Frame):
@@ -171,8 +176,8 @@ class PyCurrencyTopFrame(Frame):
 
     def update_frame(self, user_config, data):
         self.lb_average_text.config(text=f'Średnia z {user_config.numb_days} dni wynosi: ')
-        difference_day = get_difference(data[0][1], data[len(data) - 1][1])
-        difference_interval = get_difference(data[len(data) - 2][1], data[len(data) - 1][1])
+        difference_interval = get_difference(data[0][1], data[-1][1])
+        difference_day = get_difference(data[-2][1], data[-1][1])
         self.lb_difference_one_day_text.config(text=f'Wartość w ciągu jednego dnia '
                                                     f'{"zmniejszyła" if difference_day < 0 else "zwiekszyła"}'
                                                     f' się o ')
@@ -192,7 +197,7 @@ class Options(Toplevel):
         # Make variables
         currency_types = [e.value for e in const.Currency]
         self.var_currency_type = StringVar(self)
-        self.var_currency_type.set(currency_types[0])
+        self.var_currency_type.set(self.parent.user_config.currency_type)
 
         self.var_days = IntVar(self)
         self.var_days.set(self.parent.user_config.numb_days)

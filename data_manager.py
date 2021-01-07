@@ -24,15 +24,16 @@ def get_range(currency, start_date, end_date):
     if start_date.weekday() >= 5:
         start_date -= timedelta(days=(start_date.weekday() % 4))
     dates = split_date(start_date, end_date)
-    x = []
+    x = {
+        'rates': []
+    }
     for date_range in dates:
         response = make_request(currency, date_range[0], date_range[1])
         if isinstance(response, int) or response is None:
             print(f'Failed fetching data between {date_range[0]} and {date_range[1]}')
         else:
-            x = x + fix_response(response)
-
-    return x
+            x['rates'] = x['rates'] + response.json()['rates']
+    return fix_response(x)
 
 
 def get_previous_days(currency, days):
@@ -43,8 +44,8 @@ def get_previous_days(currency, days):
 
 def fix_response(response):
     x = []
-    previous_date = response.json()['rates'][0]
-    for value in response.json()['rates']:
+    previous_date = response['rates'][0]
+    for value in response['rates']:
         for date in range(1, (to_date(value['effectiveDate']) - to_date(previous_date['effectiveDate'])).days):
             x.append((to_date(previous_date['effectiveDate']) + timedelta(days=date), previous_date['mid']))
         x.append((to_date(value['effectiveDate']), value['mid']))
@@ -61,7 +62,7 @@ def to_date(date):
 
 def split_date(start_date, end_date):
     days_between = (to_date(end_date) - to_date(start_date)).days
-    print(days_between)
+    print(f'days between: {days_between}')
     dates = []
     while days_between != 0:
         if days_between >= const.REQUEST_LIMIT:
@@ -78,15 +79,18 @@ def fill_currency(currency, start_date, end_date):
     conn = sqlite3.connect('sales.db')
     c = conn.cursor()
     print("Opened database successfully")
-    currency_values = get_range(currency, to_date(start_date), to_date(end_date))
+    safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
+    query_result = c.execute('''SELECT COUNT(*) FROM currency_stats
+     where date between ? and ? and symbol like ? ORDER BY date''', safe_date)
+    currency_values = []
+    if query_result != (to_date(end_date) - to_date(start_date)).days:
+        currency_values = get_range(currency, to_date(start_date), to_date(end_date))
     duplicates = 0
     for daily_value in currency_values:
         safe_data = (currency.upper(), daily_value[0].timestamp(), daily_value[1])
         try:
             c.execute('INSERT INTO currency_stats(symbol,date,value) VALUES(?,?,?)', safe_data)
         except sqlite3.IntegrityError:
-            c.execute('''UPDATE currency_stats
-             SET value = ? where symbol like ? and date like ?''', (safe_data[2], safe_data[0], safe_data[1]))
             duplicates += 1
     if duplicates != 0:
         print(f'{duplicates} values were not added to database due to Integrity Error')
@@ -110,7 +114,7 @@ def get_currency(currency, start_date, end_date):
 
 
 def get_difference(first_value, second_value):
-    return ((first_value - second_value)/first_value) * 100
+    return -((first_value - second_value)/first_value) * 100
 
 
 def get_avg(values):

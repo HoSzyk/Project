@@ -232,7 +232,7 @@ def start():
     root = Tk()
     style = ttk.Style()
     style.theme_use('clam')
-    app = CurrencyManager(root)
+    CurrencyManager(root)
     root.mainloop()
 
 

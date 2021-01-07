@@ -17,7 +17,7 @@ class CurrencyManager(Frame):
 
         # Window config
         self.window.title('Menadżer walut')
-        self.window.iconphoto(False, PhotoImage(file="resource/icon.png"))
+        self.window.iconphoto(False, PhotoImage(file="Resource/icon.png"))
         self.window.geometry('1300x700')
         self.window.resizable(False, False)
         self.window.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -195,7 +195,7 @@ class Options(Toplevel):
         Toplevel.__init__(self, parent)
         self.parent = parent
         self.title('Ustawienia')
-        self.iconphoto(False, PhotoImage(file="resource/settings_icon.png"))
+        self.iconphoto(False, PhotoImage(file="Resource/settings_icon.png"))
 
         # Make variables
         currency_types = [e.value for e in const.Currency]

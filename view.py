@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkcalendar import DateEntry
 from user_data_manager import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from draw_figure import create_subplot, create_currency_chart
+from draw_figure import create_subplot, create_currency_chart_clear_previous
 from data_manager import *
 import constants as const
 
@@ -61,7 +61,7 @@ class CurrencyManager(Frame):
         self.update()
 
     def update_plot(self):
-        create_currency_chart(self.user_config.currency_type, self.data, self.fig)
+        create_currency_chart_clear_previous(self.user_config.currency_type, self.data, self.fig)
         self.toolbar.update()
         self.canvas.draw()
 

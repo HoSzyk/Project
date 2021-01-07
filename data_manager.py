@@ -36,12 +36,6 @@ def get_range(currency, start_date, end_date):
     return fix_response(x)
 
 
-# def get_previous_days(currency, days):
-#     current_date = datetime.now()
-#     beginning = current_date - timedelta(days=days)
-#     return get_range(currency, beginning, current_date)
-
-
 def fix_response(response):
     x = []
     previous_date = response['rates'][0]

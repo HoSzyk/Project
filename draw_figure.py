@@ -2,7 +2,7 @@ from datetime import timedelta
 from matplotlib.figure import Figure
 
 
-def create_currency_chart(currency, data, fig):
+def create_currency_chart_clear_previous(currency, data, fig):
     sub_plot = fig.get_axes()[0]
     if not data:
         print('No data')

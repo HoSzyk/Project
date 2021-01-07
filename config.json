@@ -1,5 +1,5 @@
 {
     "currency_type": "USD",
-    "numb_days": 10,
-    "is_zl": true
+    "numb_days": 15,
+    "is_zl": false
 }

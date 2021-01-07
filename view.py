@@ -6,6 +6,7 @@ from user_data_manager import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from draw_figure import create_subplot, create_currency_chart
 from data_manager import *
+import constants as const
 
 
 class CurrencyManager(Frame):
@@ -74,7 +75,10 @@ class CurrencyManager(Frame):
 
     def call_options(self):
         options_popup = Options(self)
+        options_popup.grab_set()
         options_popup.wait_window()
+        options_popup.grab_release()
+        self.update()
 
     def update(self):
         self.data = get_currency(self.user_config.currency_type, self.user_config.get_start_date(), get_now_date())
@@ -87,19 +91,26 @@ class PyCurrencyBottomFrame(Frame):
     def __init__(self, parent, *args, **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
-        self.ent_value = Entry(self, font=("Courier", 25, 'bold'), width=4)
+
+        # Make variables
+        self.var_ent = IntVar(self)
+        self.var_ent.set(0)
+
+        # Instantiate widgets
+        ent_value = Entry(self, textvariable=self.var_ent, font=("Courier", 25, 'bold'), width=4, justify='right')
         self.button_convert = Button(self, text="Przelicz",
                                      font=("Courier", 20, 'bold'), command=None)
         self.button_reverse = Button(self, text='Zamień',
-                                     font=("Courier", 20, 'bold'), command=None)
-        self.date_entry = DateEntry(self, width=12, borderwidth=2, year=2010)
+                                     font=("Courier", 20, 'bold'), command=self.reverse_currency_type)
+        self.date_entry = DateEntry(self, width=12, borderwidth=2, justify='center', date_pattern='dd-mm-yyyy',
+                                    showothermonthdays=False, locale='pl_PL')
         self.lb_currency_result = Label(self, font=("Courier", 30, 'bold'), padx=10)
         self.lb_ent = Label(self,
-                            text='zł',
+                            text='PLN',
                             font=("Courier", 25, 'bold'))
         lb_date = Label(self, text='Data: ', font=("Courier", 25, 'bold'), padx=10)
 
-        self.ent_value.grid(row=0, column=1, padx=(10, 0), pady=15, sticky='WENS')
+        ent_value.grid(row=0, column=1, padx=(10, 0), pady=15, sticky='WENS')
         self.lb_ent.grid(row=0, column=2, pady=15, sticky='WE')
         lb_date.grid(row=1, column=1, pady=15, sticky='WE')
         self.date_entry.grid(row=1, column=2, pady=15, sticky='WENS')
@@ -108,9 +119,31 @@ class PyCurrencyBottomFrame(Frame):
         self.lb_currency_result.grid(row=3, column=1, columnspan=2, pady=15, sticky='WE')
         self.grid_columnconfigure((0, 3), weight=1)
 
+        # Variables
+        self.user_config = None
+
     def update_frame(self, user_config):
-        self.lb_ent.config(text=f'{"zł" if user_config.is_zl else user_config.currency_type}')
-        self.lb_currency_result.config(text=f'0 {"zł" if not user_config.is_zl else user_config.currency_type}')
+        self.user_config = user_config
+
+        self.lb_ent.config(text=f'{"PLN" if self.user_config.is_zl else self.user_config.currency_type}')
+        self.lb_currency_result.config(
+            text=f'0 {"PLN" if not self.user_config.is_zl else self.user_config.currency_type}')
+        self.date_entry.set_date(get_now_date())
+
+    def reverse_currency_type(self):
+        entry_val = self.var_ent.get()
+        self.user_config.is_zl = not self.user_config.is_zl
+        self.lb_ent.config(text=f'{"PLN" if self.user_config.is_zl else self.user_config.currency_type}')
+        currency_result = self.lb_currency_result.cget('text')[:-4]
+        self.var_ent.set(int(currency_result))
+        self.lb_currency_result.config(
+            text=f'{f"{entry_val} PLN" if not self.user_config.is_zl else f"{entry_val} {self.user_config.currency_type}"}')
+
+    def convert_currency(self):
+        currency = 'PLN' if self.user_config.is_zl else self.user_config.currency_type
+        entry = self.var_ent.get()
+        date = self.date_entry.get()
+        # result = entry *
 
 
 class PyCurrencyTopFrame(Frame):
@@ -146,9 +179,9 @@ class PyCurrencyTopFrame(Frame):
         self.lb_difference_interval_text.config(text=f'Wartość w ciągu {user_config.numb_days} '
                                                      f'{"zmniejszyła" if difference_interval < 0 else "zwiekszyła"}'
                                                      f' się o ')
-        self.lb_average_value.config(text=f'{get_avg(data):10.3f}')
-        self.lb_difference_one_day_value.config(text=f'{difference_day:10.3f} %')
-        self.lb_difference_interval_value.config(text=f'{difference_interval:10.3f} %')
+        self.lb_average_value.config(text=f'{get_avg(data):10.3f} ')
+        self.lb_difference_one_day_value.config(text=f'{difference_day:10.3f}%')
+        self.lb_difference_interval_value.config(text=f'{difference_interval:10.3f}%')
 
 
 class Options(Toplevel):
@@ -156,16 +189,32 @@ class Options(Toplevel):
         Toplevel.__init__(self, parent)
         self.parent = parent
 
-        # add an entry widget
-        self.e1 = Entry(self)
-        self.e1.pack()
+        # Make variables
+        currency_types = [e.value for e in const.Currency]
+        self.var_currency_type = StringVar(self)
+        self.var_currency_type.set(currency_types[0])
 
-        # add a button
-        b1 = Button(self, text="Popup button", command=self.button_pressed)
-        b1.pack()
+        self.var_days = IntVar(self)
+        self.var_days.set(self.parent.user_config.numb_days)
+
+        # Instantiate widgets
+        lb_curr = Label(self, text='Waluta ', font=("Courier", 12), anchor=W)
+        lb_days = Label(self, text='Ilość dni ', font=("Courier", 12), anchor=W)
+        option_currency_type = OptionMenu(self, self.var_currency_type, *currency_types)
+        en_days = Entry(self, textvariable=self.var_days)
+        but_confirm = Button(self, text="Zatwierdź", command=self.button_pressed)
+        but_cancel = Button(self, text="Anuluj", command=self.exit_popup)
+
+        lb_curr.grid(row=0, column=0, padx=10, pady=15, sticky=W)
+        option_currency_type.grid(row=0, column=1, padx=10, pady=15, sticky=W)
+        lb_days.grid(row=1, column=0, padx=10, pady=15, sticky=W)
+        en_days.grid(row=1, column=1, padx=10, pady=15, sticky=W)
+        but_confirm.grid(row=2, column=0, padx=30, pady=15, sticky=W)
+        but_cancel.grid(row=2, column=1, padx=(0, 30), pady=15, sticky=E)
 
     def button_pressed(self):
-        # self.parent.user_config = self.e1.get()
+        self.parent.user_config.currency_type = self.var_currency_type.get()
+        self.parent.user_config.numb_days = self.var_days.get()
         self.exit_popup()
 
     def exit_popup(self):
@@ -177,4 +226,5 @@ if __name__ == '__main__':
     style = ttk.Style()
     style.theme_use('clam')
     start = CurrencyManager(root)
+    print(const.Currency.value2member_map_)
     root.mainloop()

@@ -1,28 +1,29 @@
 from tkinter import *
 from tkinter import ttk
 
-from tkcalendar import DateEntry
-from user_data_manager import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from draw_figure import create_subplot, create_currency_chart_clear_previous
+from tkcalendar import DateEntry
+
 from data_manager import *
-import constants as const
+from draw_figure import create_subplot, create_currency_chart_clear_previous
+from user_data_manager import *
 
 
 class CurrencyManager(Frame):
     def __init__(self, window, *args, **kwargs):
         Frame.__init__(self, window, *args, **kwargs)
+        self.pack()
         self.window = window
 
         # Window config
         self.window.title('Menadżer walut')
         self.window.iconphoto(False, PhotoImage(file="resource/icon.png"))
         self.window.geometry('1300x700')
-        self.window.minsize(1300, 700)
+        self.window.resizable(False, False)
         self.window.protocol("WM_DELETE_WINDOW", self.on_close)
 
         # Window right side
-        self.window_right = Frame(self.window, borderwidth=2, relief=SOLID)
+        self.window_right = Frame(self, borderwidth=2, relief=SOLID)
         self.window_right.pack(side=RIGHT, expand=True, fill="both", padx=5, pady=5)
         self.window_right_top = PyCurrencyTopFrame(self.window_right)
         self.window_right_bottom = PyCurrencyBottomFrame(self.window_right)
@@ -34,7 +35,7 @@ class CurrencyManager(Frame):
         self.window_right_bottom.pack(fill=X, pady=(10, 0))
 
         # Window left side
-        self.window_left = Frame(self.window)
+        self.window_left = Frame(self)
         self.window_left.pack(side=LEFT, expand=True, fill="both", padx=(0, 20))
         self.window_left_bottom = Frame(self.window_left)
         self.window_left_bottom.pack(side=BOTTOM, expand=True, fill="both", padx=(0, 60))
@@ -147,7 +148,7 @@ class PyCurrencyBottomFrame(Frame):
         currency_record = get_currency(self.user_config.currency_type, conv_date, conv_date)
         if currency_record:
             currency_value = currency_record[0][1]
-            result = entry/currency_value if currency != 'PLN' else entry * currency_value
+            result = entry / currency_value if currency != 'PLN' else entry * currency_value
             self.lb_currency_result.config(text=f'{result:5.3f} {currency}')
 
 

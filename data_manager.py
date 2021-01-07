@@ -36,10 +36,10 @@ def get_range(currency, start_date, end_date):
     return fix_response(x)
 
 
-def get_previous_days(currency, days):
-    current_date = datetime.now()
-    beginning = current_date - timedelta(days=days)
-    return get_range(currency, beginning, current_date)
+# def get_previous_days(currency, days):
+#     current_date = datetime.now()
+#     beginning = current_date - timedelta(days=days)
+#     return get_range(currency, beginning, current_date)
 
 
 def fix_response(response):
@@ -78,12 +78,11 @@ def split_date(start_date, end_date):
 def fill_currency(currency, start_date, end_date):
     conn = sqlite3.connect('sales.db')
     c = conn.cursor()
-    print("Opened database successfully")
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
-    query_result = c.execute('''SELECT COUNT(*) FROM currency_stats
-     where date between ? and ? and symbol like ? ORDER BY date''', safe_date)
+    query_result = c.execute('''SELECT COUNT(symbol) FROM currency_stats
+     where date between ? and ? and symbol like ? ORDER BY date''', safe_date).fetchall()
     currency_values = []
-    if query_result != (to_date(end_date) - to_date(start_date)).days:
+    if query_result[0][0] != (to_date(end_date) - to_date(start_date)).days:
         currency_values = get_range(currency, to_date(start_date), to_date(end_date))
     duplicates = 0
     for daily_value in currency_values:
@@ -103,7 +102,6 @@ def get_currency(currency, start_date, end_date):
         print('Illegal argument')
     conn = sqlite3.connect('sales.db')
     c = conn.cursor()
-    print("Opened database successfully")
     x = []
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
     for row in c.execute('SELECT value, date from currency_stats'

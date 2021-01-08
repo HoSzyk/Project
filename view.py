@@ -235,7 +235,3 @@ def start():
     style.theme_use('clam')
     CurrencyManager(root)
     root.mainloop()
-
-
-if __name__ == '__main__':
-    start()

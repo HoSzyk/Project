@@ -70,7 +70,7 @@ def split_date(start_date, end_date):
 
 
 def fill_currency(currency, start_date, end_date):
-    conn = sqlite3.connect('sales.db')
+    conn = sqlite3.connect('database.db')
     c = conn.cursor()
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
     query_result = c.execute('''SELECT COUNT(symbol) FROM currency_stats
@@ -94,7 +94,7 @@ def fill_currency(currency, start_date, end_date):
 def get_currency(currency, start_date, end_date):
     if (to_date(end_date) - to_date(start_date)).days < 0:
         print('Illegal argument')
-    conn = sqlite3.connect('sales.db')
+    conn = sqlite3.connect('database.db')
     c = conn.cursor()
     x = []
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)

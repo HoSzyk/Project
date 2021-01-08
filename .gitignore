@@ -138,6 +138,6 @@ dmypy.json
 cython_debug/
 __pycache__/main.cpython-37.pyc
 
-database.db
+Data/database.db
 *.xml
 *.pyc

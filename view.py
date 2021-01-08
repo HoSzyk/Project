@@ -4,9 +4,9 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from tkcalendar import DateEntry
 
-from data_manager import *
+from Data.data_manager import *
 from plot_manager import create_subplot, create_currency_chart_clear_previous
-from user_data_manager import *
+from Data.user_data_manager import *
 
 
 class CurrencyManager(Frame):

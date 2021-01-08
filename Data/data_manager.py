@@ -2,6 +2,11 @@ import requests
 import sqlite3
 import constants as const
 from datetime import datetime, timedelta
+from pathlib import Path
+
+
+def get_db_path():
+    return Path(__file__).parent / "../Data/database.db"
 
 
 def make_request(currency, start_date, end_date):
@@ -70,7 +75,7 @@ def split_date(start_date, end_date):
 
 
 def fill_currency(currency, start_date, end_date):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)
     query_result = c.execute('''SELECT COUNT(symbol) FROM currency_stats
@@ -94,7 +99,7 @@ def fill_currency(currency, start_date, end_date):
 def get_currency(currency, start_date, end_date):
     if (to_date(end_date) - to_date(start_date)).days < 0:
         print('Illegal argument')
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     x = []
     safe_date = (to_date(start_date).timestamp(), to_date(end_date).timestamp(), currency)

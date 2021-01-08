@@ -1,5 +1,5 @@
 import sqlite3
-from view import start
+from View.view import start
 
 if __name__ == '__main__':
     conn = sqlite3.connect('Data/database.db')

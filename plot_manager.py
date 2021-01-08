@@ -26,5 +26,5 @@ def create_currency_chart_clear_previous(currency, data, fig):
 def create_subplot(fig=Figure(figsize=(6.5, 8.5))):
     fig.subplots_adjust(left=0.1, right=0.9, top=1, bottom=0.12)
     fig.patch.set_color('#F0F0F0')
-    sub_plot = fig.add_subplot(111)
+    fig.add_subplot(111)
     return fig

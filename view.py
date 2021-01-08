@@ -5,7 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from tkcalendar import DateEntry
 
 from data_manager import *
-from draw_figure import create_subplot, create_currency_chart_clear_previous
+from plot_manager import create_subplot, create_currency_chart_clear_previous
 from user_data_manager import *
 
 
